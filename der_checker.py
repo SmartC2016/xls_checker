@@ -27,6 +27,7 @@ __author__ = "Christian Hetmann"
 import tkinter as tk
 from tkinter import ttk
 from tkinter import scrolledtext
+import os
 
 LARGE_FONT = ("Verdana", 12)
 
@@ -34,7 +35,6 @@ class Klaus_App(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.fenster = parent
-
         self.fenster.title("Klaus' Excel-Checker")
 
         # Bildschirmbreite ermitteln und Fensterposition bestimmen
@@ -42,12 +42,12 @@ class Klaus_App(tk.Frame):
         y_pos = int((self.fenster.winfo_screenheight() - self.fenster.winfo_reqheight()) / 3)
         self.fenster.geometry(f'{x_pos}x{2*y_pos}+{x_pos}+{y_pos}')
 
+        # Allgemeine Variablen definieren
+        self.dateiliste = []  # Hier werden später alle Datei-Namen gespeichert
 
         # Tab-Control erstellen
         self.tab_control = ttk.Notebook(self.fenster)
-        #self.tab_control.pack(expand=1, fill='both', side=tk.LEFT)
         self.tab_control.grid(row=0, column=0, columnspan=50, rowspan=50, sticky='NESW')
-        #self.tab_control.grid()
 
         # Tabs erstellen
         self.tab1 = ttk.Frame(self.tab_control)
@@ -82,7 +82,14 @@ class Klaus_App(tk.Frame):
 
         self.tb1 = scrolledtext.ScrolledText(self.tab1, wrap=tk.WORD)
         self.tb1.grid(row=1, column=0, columnspan=49, sticky='NSEW')
-        self.tb1.insert(tk.END, 10*__doc__)
+        #self.tb1.insert(tk.END, 10*__doc__)
+
+        self.btn1 = ttk.Button(self.tab1, text='Excel-Check starten!', default='active', command=dummy)
+        self.btn1.grid(row=48, column=10, padx=5, pady=5)
+        #self.btn1.focus()
+        self.btn2 = ttk.Button(self.tab1, text='Programm beenden', command=quit)
+        self.btn2.grid(row=48, column=40, padx=5, pady=5)
+
 
         # Tab 2 - Zusammenfassung
         self.lbl2 = tk.Label(self.tab2, text='My Label 2')
@@ -99,14 +106,47 @@ class Klaus_App(tk.Frame):
 
 
         # Tab - Control
+        self.existiert_dateiliste()
         return
 
+    def existiert_dateiliste(self):
+        if os.path.exists('Dateiliste.txt') == True:
+            print('Dateiliste.txt', "existiert.")
+            self.tb1.insert(tk.END, 'Die Datei "Dateiliste.txt" existiert.\n')
+            self.dateiliste_einlesen()
+        else:
+            print('Dateiliste.txt', "existiert nicht.")
+            self.tb1.insert(tk.END, 'Die Datei "Dateiliste.txt" existiert NICHT.')
+        return
 
-def dateiliste_einlesen():
-    with open('Dateiliste.txt', 'r') as writefile:
-        for line in dliste:
-            writefile.write(line + '\n')
+    def dateiliste_einlesen(self):
+        tmp_dateiliste = []
+        try:
+            with open('Dateiliste.txt', 'r') as file:
+                for line in file:
+                    tmp_dateiliste.append(line.strip())
+            print(tmp_dateiliste)
+            self.dateiliste = tmp_dateiliste
+            msg = f'Datei erfolgreich eingelesen. {len(self.dateiliste)} Dateinamen gefunden:\n'
+            self.tb1.insert(tk.END, msg)
+            for zeile in self.dateiliste:
+                self.tb1.insert(tk.END, zeile+'\n')
+        except IOError:
+            msg = 'FEHLER beim Lesen der Datei! Erstelle eine neue "Dateiliste.txt"!'
+            print(msg)
+            self.tb1.insert(tk.END, msg)
+        return
+
+    def checke_alle_dateien(self):
+        pass
+        return
+
+def dummy():
+    print('Do nothing!')
     return
+
+
+
 
 
 if __name__ == "__main__":
