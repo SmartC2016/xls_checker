@@ -44,6 +44,7 @@ class Klaus_App(tk.Frame):
 
         # Allgemeine Variablen definieren
         self.dateiliste = []  # Hier werden später alle Datei-Namen gespeichert
+        self.fehler = False
 
         # Tab-Control erstellen
         self.tab_control = ttk.Notebook(self.fenster)
@@ -70,11 +71,6 @@ class Klaus_App(tk.Frame):
         self.tab_control.add(self.tab4, text='Dateiliste')
 
         # Tab 1 - Status
-        # todo checken ob Dateiliste existiert
-        # todo checken ob Dateiliste Files enthält
-        # todo Duplikate und leere Zeilen löschen
-        # todo checken of files auch wirklich da sind
-        # todo checken ob files xlsb oder xlsx sind
         # todo Buttons erstellen
 
         self.label1 = ttk.Label(self.tab1, text='STATUS')
@@ -82,16 +78,15 @@ class Klaus_App(tk.Frame):
 
         self.tb1 = scrolledtext.ScrolledText(self.tab1, wrap=tk.WORD)
         self.tb1.grid(row=1, column=0, columnspan=49, sticky='NSEW')
-        #self.tb1.insert(tk.END, 10*__doc__)
 
         self.btn1 = ttk.Button(self.tab1, text='Excel-Check starten!', default='active', command=dummy)
         self.btn1.grid(row=48, column=10, padx=5, pady=5)
-        #self.btn1.focus()
         self.btn2 = ttk.Button(self.tab1, text='Programm beenden', command=quit)
         self.btn2.grid(row=48, column=40, padx=5, pady=5)
 
 
         # Tab 2 - Zusammenfassung
+        # todo checken ob files xlsb oder xlsx sind
         self.lbl2 = tk.Label(self.tab2, text='My Label 2')
         self.lbl2.grid(row=0, column=0)
 
@@ -103,6 +98,7 @@ class Klaus_App(tk.Frame):
         # Tab 3 - Details
 
         # Tab 4 - Dateiliste
+        # todo Duplikate und leere Zeilen löschen
 
 
         # Tab - Control
@@ -111,8 +107,9 @@ class Klaus_App(tk.Frame):
 
     def existiert_dateiliste(self):
         if os.path.exists('Dateiliste.txt') == True:
-            print('Dateiliste.txt', "existiert.")
-            self.tb1.insert(tk.END, 'Die Datei "Dateiliste.txt" existiert.\n')
+            msg = 'Die Datei "Dateiliste.txt" existiert.\n\n'
+            print(msg)
+            self.tb1.insert(tk.END, msg)
             self.dateiliste_einlesen()
         else:
             print('Dateiliste.txt', "existiert nicht.")
@@ -131,6 +128,7 @@ class Klaus_App(tk.Frame):
             self.tb1.insert(tk.END, msg)
             for zeile in self.dateiliste:
                 self.tb1.insert(tk.END, zeile+'\n')
+            self.checke_alle_dateien()
         except IOError:
             msg = 'FEHLER beim Lesen der Datei! Erstelle eine neue "Dateiliste.txt"!'
             print(msg)
@@ -138,15 +136,46 @@ class Klaus_App(tk.Frame):
         return
 
     def checke_alle_dateien(self):
-        pass
+        """
+        Diese Funktion testet ob alle Datein in der Datei-Liste auch tatsächlich existieren
+        :return: kein Rückgabewert
+        """
+        for ind, datei in enumerate(self.dateiliste):
+            if os.path.exists(datei) == True:
+                msg = f'\nDie {ind+1}. Datei "{datei}" existiert.\n'
+                print(msg)
+                self.tb1.insert(tk.END, msg)
+            else:
+                msg = f'\nDie {ind+1}. Datei "{datei}" existiert N I C H T !!!.\n'
+                print(msg)
+                self.tb1.insert(tk.END, msg)
+                self.fehler = True
+        if self.fehler:
+            # Elemente deaktivieren
+            msg = '\nDa es ein Problem mit einer Datei in der "Dateiliste.txt" gibt, sind einige Elemente' \
+                  'deaktiviert. Du musst die "Dateiliste.txt" in dem Tab Dateiliste neu erstellen.\n'
+            print(msg)
+            self.tb1.insert(tk.END, msg)
+            self.deaktiviere_elemente(self.tab2)
+            self.deaktiviere_elemente(self.tab3)
+            self.btn1.configure(state='disabled')
+            self.btn2.configure(default='active')
         return
+
+    def deaktiviere_elemente(self, element):
+        print(element)
+        for ele in element.winfo_children():
+            try:
+                ele.configure(state='disabled')
+                print(ele)
+            except:
+                print(f'Dieses Element kann nicht deaktiviert werden: {ele}')
+        return
+
 
 def dummy():
     print('Do nothing!')
     return
-
-
-
 
 
 if __name__ == "__main__":
