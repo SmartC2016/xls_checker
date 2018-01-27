@@ -7,10 +7,10 @@ Dieses Programm durchsucht mehrere in einer Datei angegebenen Dateiein nach defi
 Die Dateien können als xlsb angegeben werden und werden dann für die Untersuchung temporär 
 in xlsx umgewandelt. Die Fehler werden sowohl als Übersicht angegeben, alsauch im Detail.
 
-Am 25.01.18 als GUI neu aufgesetzt.
+Am 27.01.18 als GUI neu aufgesetzt.
 """
 
-__version__ = "0.003b - 25.01.2018"
+__version__ = "0.003b - 27.01.2018"
 __author__ = "Christian Hetmann"
 
 # todo xlsb-Datei mit Excel einlesen, in xlsx konvertieren und dann speichern
@@ -20,9 +20,7 @@ __author__ = "Christian Hetmann"
 # todo alle Zeilen durch gehen und nach Fehlern suchen
 # todo cell.data_type BEACHTEN ... s=string, n=none, f=formula, e=error
 # todo GUI zur Bedienung
-# todo Text-Datei einlesen mit absoluten Pfaden der einzulesenden und zu prüfenden Dateien ...
 # todo ermitteln, ob die Datei in der Liste eine xlsb oder xlsx ist, ggf. umwandeln
-# todo checken, ob die "Dateiliste.txt" bereits existiert.
 
 import tkinter as tk
 from tkinter import ttk
@@ -56,13 +54,16 @@ class Klaus_App(tk.Frame):
         self.tab3 = ttk.Frame(self.tab_control)
         self.tab4 = ttk.Frame(self.tab_control)
 
-
+        # Beim "Grid" Window Manager sollte man einstellen, wieviel Spalten und Zeilen das Fenster hat
+        tabs = [self.tab1, self.tab2, self.tab3, self.tab4]
         zeile = 0
-        while zeile < 50:
-            self.tab1.rowconfigure(zeile, weight=1)
-            self.tab1.columnconfigure(zeile, weight=1)
+        while zeile < 30:
+            # self.tab1.rowconfigure(zeile, weight=1)
+            # self.tab1.columnconfigure(zeile, weight=1)
+            for t in tabs:
+                t.rowconfigure(zeile, weight=1)
+                t.columnconfigure(zeile, weight=1)
             zeile += 1
-
 
         # Tabs benamen
         self.tab_control.add(self.tab1, text='Status')
@@ -72,18 +73,18 @@ class Klaus_App(tk.Frame):
 
         # Tab 1 - Status
         # todo Buttons erstellen
-
         self.label1 = ttk.Label(self.tab1, text='STATUS')
-        self.label1.grid(row=0, column=0)
+        self.label1.grid(row=0, column=0, sticky='NSEW')
 
         self.tb1 = scrolledtext.ScrolledText(self.tab1, wrap=tk.WORD)
-        self.tb1.grid(row=1, column=0, columnspan=49, sticky='NSEW')
+        self.tb1.grid(row=1, column=0, columnspan=39, sticky='NSEW')
 
-        self.btn1 = ttk.Button(self.tab1, text='Excel-Check starten!', default='active', command=dummy)
-        self.btn1.grid(row=48, column=10, padx=5, pady=5)
-        self.btn2 = ttk.Button(self.tab1, text='Programm beenden', command=quit)
-        self.btn2.grid(row=48, column=40, padx=5, pady=5)
-
+        self.btn_excel = ttk.Button(self.tab1, text='Excel-Check starten', default='active', command=dummy)
+        self.btn_excel.grid(row=29, column=0, padx=2, pady=2)
+        self.btn_dl_lesen = ttk.Button(self.tab1, text='Dateiliste neu lesen', command=dummy)
+        self.btn_dl_lesen.grid(row=29, column=15, padx=2, pady=2)
+        self.btn_quit_t1 = ttk.Button(self.tab1, text='Programm beenden', command=quit)
+        self.btn_quit_t1.grid(row=29, column=30, padx=2, pady=2)
 
         # Tab 2 - Zusammenfassung
         # todo checken ob files xlsb oder xlsx sind
@@ -99,7 +100,20 @@ class Klaus_App(tk.Frame):
 
         # Tab 4 - Dateiliste
         # todo Duplikate und leere Zeilen löschen
+        self.label2 = ttk.Label(self.tab4, text='EINGELESENE DATEIEN')
+        self.label2.grid(row=0, column=0)
 
+        self.tb2 = scrolledtext.ScrolledText(self.tab4, height=15, relief=tk.SUNKEN, wrap=tk.WORD)
+        self.tb2.grid(row=1, column=0, columnspan=49, sticky='NSEW')
+        #self.tb2.pack(pady=15, fill='both')
+        self.tb2.insert(tk.END, 'Hier stehen nach der Auswahl die Dateien (inkl. Pfade) ...')
+
+        self.btn_waehlen = ttk.Button(self.tab4, text='Datei wählen', command=dummy, width=16)
+        self.btn_waehlen.grid(row=29, column=0, padx=2, pady=2)
+        self.btn_speichern = ttk.Button(self.tab4, text='Liste speichern', command=dummy, width=16)
+        self.btn_speichern.grid(row=29, column=15, padx=2, pady=2)
+        self.btn_quit_t4 = ttk.Button(self.tab4, text='Beenden', command=quit, width=16)
+        self.btn_quit_t4.grid(row=29, column=30, padx=2, pady=2)
 
         # Tab - Control
         self.existiert_dateiliste()
@@ -112,8 +126,10 @@ class Klaus_App(tk.Frame):
             self.tb1.insert(tk.END, msg)
             self.dateiliste_einlesen()
         else:
-            print('Dateiliste.txt', "existiert nicht.")
-            self.tb1.insert(tk.END, 'Die Datei "Dateiliste.txt" existiert NICHT.')
+            msg = 'Die Datei "Dateiliste.txt" existiert N I C H T !!!.\n' \
+                  'Du musst die "Dateiliste" im Tab Dateiliste neu erstellen!\n\n'
+            print(msg)
+            self.tb1.insert(tk.END, msg)
         return
 
     def dateiliste_einlesen(self):
@@ -126,6 +142,8 @@ class Klaus_App(tk.Frame):
             self.dateiliste = tmp_dateiliste
             msg = f'Datei erfolgreich eingelesen. {len(self.dateiliste)} Dateinamen gefunden:\n'
             self.tb1.insert(tk.END, msg)
+            self.aktiviere_deaktiviere_elemente(self.tab2, 'enable')
+            self.aktiviere_deaktiviere_elemente(self.tab3, 'enable')
             for zeile in self.dateiliste:
                 self.tb1.insert(tk.END, zeile+'\n')
             self.checke_alle_dateien()
@@ -133,6 +151,8 @@ class Klaus_App(tk.Frame):
             msg = 'FEHLER beim Lesen der Datei! Erstelle eine neue "Dateiliste.txt"!'
             print(msg)
             self.tb1.insert(tk.END, msg)
+            self.aktiviere_deaktiviere_elemente(self.tab2, 'disabled')
+            self.aktiviere_deaktiviere_elemente(self.tab3, 'disabled')
         return
 
     def checke_alle_dateien(self):
@@ -152,36 +172,32 @@ class Klaus_App(tk.Frame):
                 self.fehler = True
         if self.fehler:
             # Elemente deaktivieren
-            msg = '\nDa es ein Problem mit einer Datei in der "Dateiliste.txt" gibt, sind einige Elemente' \
+            msg = '\nDa es ein Problem mit einer Datei in der "Dateiliste.txt" gibt, sind einige Elemente ' \
                   'deaktiviert. Du musst die "Dateiliste.txt" in dem Tab Dateiliste neu erstellen.\n'
             print(msg)
             self.tb1.insert(tk.END, msg)
-            self.deaktiviere_elemente(self.tab2)
-            self.deaktiviere_elemente(self.tab3)
-            self.btn1.configure(state='disabled')
-            self.btn2.configure(default='active')
+            self.aktiviere_deaktiviere_elemente(self.tab2, 'disabled')
+            self.aktiviere_deaktiviere_elemente(self.tab3, 'disabled')
+            self.btn_excel.configure(state='disabled')
+            self.btn_quit_t1.configure(default='active')
         return
 
-    def deaktiviere_elemente(self, element):
-        print(element)
+    def aktiviere_deaktiviere_elemente(self, element, state):
         for ele in element.winfo_children():
             try:
-                ele.configure(state='disabled')
-                print(ele)
+                ele.configure(state=state)
             except:
                 print(f'Dieses Element kann nicht deaktiviert werden: {ele}')
         return
-
 
 def dummy():
     print('Do nothing!')
     return
 
-
 if __name__ == "__main__":
     root = tk.Tk()
     rows = 0
-    while rows < 50:
+    while rows < 30:
         root.rowconfigure(rows, weight=1)
         root.columnconfigure(rows, weight=1)
         rows += 1
