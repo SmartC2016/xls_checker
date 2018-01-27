@@ -42,9 +42,15 @@ class Klaus_App(tk.Frame):
         y_pos = int((self.fenster.winfo_screenheight() - self.fenster.winfo_reqheight()) / 3)
         self.fenster.geometry(f'{x_pos}x{2*y_pos}+{x_pos}+{y_pos}')
 
+        # Überschreibt die Betriebssystem Funktion, wenn auf das 'x' zum schliessen gedrückt wird.
+        # So kann noch was anderes vorher geprüft / gemacht werden, bevor das Programm endet.
+        self.fenster.protocol('WM_DELETE_WINDOW', self.click_beenden)
+
+
         # Allgemeine Variablen definieren
         self.dateiliste = []  # Hier werden später alle Datei-Namen gespeichert
         self.fehler = False
+        self.gespeichert = True
 
         # Tab-Control erstellen
         self.tab_control = ttk.Notebook(self.fenster)
@@ -81,11 +87,11 @@ class Klaus_App(tk.Frame):
         self.tb1 = scrolledtext.ScrolledText(self.tab1, wrap=tk.WORD)
         self.tb1.grid(row=1, column=0, columnspan=39, sticky='NSEW')
 
-        self.btn_excel = ttk.Button(self.tab1, text='Excel-Check starten', default='active', command=dummy)
+        self.btn_excel = ttk.Button(self.tab1, text='Excel-Check starten', default='active', command=dummy, width=16)
         self.btn_excel.grid(row=29, column=0, padx=2, pady=2)
-        self.btn_dl_lesen = ttk.Button(self.tab1, text='Dateiliste neu lesen', command=dummy)
+        self.btn_dl_lesen = ttk.Button(self.tab1, text='Dateiliste neu lesen', command=dummy, width=16)
         self.btn_dl_lesen.grid(row=29, column=15, padx=2, pady=2)
-        self.btn_quit_t1 = ttk.Button(self.tab1, text='Programm beenden', command=quit)
+        self.btn_quit_t1 = ttk.Button(self.tab1, text='Beenden', command=self.click_beenden, width=16)
         self.btn_quit_t1.grid(row=29, column=30, padx=2, pady=2)
 
         # Tab 2 - Zusammenfassung
@@ -105,16 +111,18 @@ class Klaus_App(tk.Frame):
         self.label2 = ttk.Label(self.tab4, text='EINGELESENE DATEIEN')
         self.label2.grid(row=0, column=0)
 
-        self.tb2 = scrolledtext.ScrolledText(self.tab4, height=15, relief=tk.SUNKEN, wrap=tk.WORD)
-        self.tb2.grid(row=1, column=0, columnspan=49, sticky='NSEW')
+        #self.tb2 = scrolledtext.ScrolledText(self.tab4, height=15, relief=tk.SUNKEN, wrap=tk.WORD)
+        self.tb2 = scrolledtext.ScrolledText(self.tab4, relief=tk.SUNKEN, wrap=tk.WORD)
+        self.tb2.grid(row=1, column=0, columnspan=39, sticky='NSEW')
         #self.tb2.pack(pady=15, fill='both')
         self.tb2.insert(tk.END, 'Hier stehen nach der Auswahl die Dateien (inkl. Pfade) ...')
 
-        self.btn_waehlen = ttk.Button(self.tab4, text='Datei wählen', command=self.click_datei_waehlen, width=16)
+        self.btn_waehlen = ttk.Button(self.tab4, text='Datei wählen',
+                                      default='active', command=self.click_datei_waehlen, width=16)
         self.btn_waehlen.grid(row=29, column=0, padx=2, pady=2)
         self.btn_speichern = ttk.Button(self.tab4, text='Liste speichern', command=dummy, width=16)
         self.btn_speichern.grid(row=29, column=15, padx=2, pady=2)
-        self.btn_quit_t4 = ttk.Button(self.tab4, text='Beenden', command=quit, width=16)
+        self.btn_quit_t4 = ttk.Button(self.tab4, text='Beenden', command=self.click_beenden, width=16)
         self.btn_quit_t4.grid(row=29, column=30, padx=2, pady=2)
 
         # Tab - Control
@@ -136,17 +144,84 @@ class Klaus_App(tk.Frame):
 
     def click_datei_waehlen(self, event=None):
         # Checken, ob es schon eine Dateiliste gibt und erfolgreich eingelesen wurde
+        def lese_datei_ein():
+            filename = askopenfilename()
+            self.dateiliste.append(filename)
+            self.gespeichert = False
+            self.fuelle_tb2()
+            return
         if os.path.exists('Dateiliste.txt') == True:
             titel = '"Dateiliste.txt" existiert'
-            ergebnis = messagebox.askokcancel(titel, 'Es existiert bereits eine Dateiliste! Wirklich weiter machen?')
+            ergebnis = messagebox.askyesno(titel, 'Es existiert bereits eine Dateiliste! Löschen und neue anlegen?')
+            if ergebnis:
+                os.remove('Dateiliste.txt')
+                self.dateiliste = []
+                lese_datei_ein()
+        else:
+            lese_datei_ein()
+        self.tb2.focus()
+        return
+
+    def click_speicher_dateinamen(self, event=None):
+        # Liste bereinigen: Duplikate löschen und leere Zeilen
+        self.liste_bereinigen()
+        self.fuelle_tb2()
+        if len(self.dateiliste) > 0:
+            print('Die Liste ist länger als 0 - es wird gespeichert!')
+            dateiname = 'Dateiliste.txt'
+            #import os.path
+            def schreibe_datei(dname, dliste):
+                with open(dname, 'w') as writefile:
+                    for line in dliste:
+                        writefile.write(line + '\n')
+                self.gespeichert = True
+                return
+            if os.path.isfile(dateiname):
+                ergebnis = messagebox.askyesno("Datei existiert!",
+                                               "Die Datei existiert bereits! Wollen Sie sie überschreiben?")
+                if ergebnis:
+                    schreibe_datei(dateiname, self.dateiliste)
+                else:
+                    return
+            else:
+                schreibe_datei(dateiname, self.dateiliste)
+
+        else:
+            messagebox.showinfo("Speichern?", "Gibt nichts zu speichern!")
+        return
+
+    def liste_bereinigen(self):
+        if len(self.dateiliste) > 0:
+            # Das ist ein Trick, die Liste in ein Set umzuwandeln, denn Sets haben keine Duplikate und dann
+            # wieder zurück in eine Liste
+            self.dateiliste = list(set(self.dateiliste))
+            loesch_index = []
+            for ind, line in enumerate(self.dateiliste):
+                if line == '':
+                    loesch_index.append(ind)
+            for i in sorted(loesch_index, reverse=True):
+                del loesch_index[i]
+        return
+
+    def click_beenden(self):
+        if self.gespeichert:
+            self.fenster.destroy()
+        else:
+            ergebnis = messagebox.askyesno('Speichern?',
+                                           'Die "Dateiliste.txt" wurde noch nicht gespeichert! Wirklich beenden?')
             if ergebnis:
                 self.fenster.destroy()
-
-        # filename = askopenfilename()
-        # self.dateiliste.append(filename)
-        # self.gespeichert = False
-        # self.fuelle_textbox()
+            else:
+                self.tab4.focus()
         return
+
+
+    def fuelle_tb2(self):
+        self.tb2.delete(1.0, tk.END)
+        for zeile in self.dateiliste:
+            self.tb2.insert(tk.END, zeile + '\n')
+        return
+
 
     def dateiliste_einlesen(self):
         tmp_dateiliste = []
