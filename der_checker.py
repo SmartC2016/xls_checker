@@ -25,6 +25,8 @@ __author__ = "Christian Hetmann"
 import tkinter as tk
 from tkinter import ttk
 from tkinter import scrolledtext
+from tkinter.filedialog import askopenfilename
+from tkinter import messagebox
 import os
 
 LARGE_FONT = ("Verdana", 12)
@@ -108,7 +110,7 @@ class Klaus_App(tk.Frame):
         #self.tb2.pack(pady=15, fill='both')
         self.tb2.insert(tk.END, 'Hier stehen nach der Auswahl die Dateien (inkl. Pfade) ...')
 
-        self.btn_waehlen = ttk.Button(self.tab4, text='Datei wählen', command=dummy, width=16)
+        self.btn_waehlen = ttk.Button(self.tab4, text='Datei wählen', command=self.click_datei_waehlen, width=16)
         self.btn_waehlen.grid(row=29, column=0, padx=2, pady=2)
         self.btn_speichern = ttk.Button(self.tab4, text='Liste speichern', command=dummy, width=16)
         self.btn_speichern.grid(row=29, column=15, padx=2, pady=2)
@@ -130,6 +132,20 @@ class Klaus_App(tk.Frame):
                   'Du musst die "Dateiliste" im Tab Dateiliste neu erstellen!\n\n'
             print(msg)
             self.tb1.insert(tk.END, msg)
+        return
+
+    def click_datei_waehlen(self, event=None):
+        # Checken, ob es schon eine Dateiliste gibt und erfolgreich eingelesen wurde
+        if os.path.exists('Dateiliste.txt') == True:
+            titel = '"Dateiliste.txt" existiert'
+            ergebnis = messagebox.askokcancel(titel, 'Es existiert bereits eine Dateiliste! Wirklich weiter machen?')
+            if ergebnis:
+                self.fenster.destroy()
+
+        # filename = askopenfilename()
+        # self.dateiliste.append(filename)
+        # self.gespeichert = False
+        # self.fuelle_textbox()
         return
 
     def dateiliste_einlesen(self):
