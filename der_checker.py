@@ -111,10 +111,8 @@ class Klaus_App(tk.Frame):
         self.label2 = ttk.Label(self.tab4, text='EINGELESENE DATEIEN')
         self.label2.grid(row=0, column=0)
 
-        #self.tb2 = scrolledtext.ScrolledText(self.tab4, height=15, relief=tk.SUNKEN, wrap=tk.WORD)
         self.tb2 = scrolledtext.ScrolledText(self.tab4, relief=tk.SUNKEN, wrap=tk.WORD)
         self.tb2.grid(row=1, column=0, columnspan=39, sticky='NSEW')
-        #self.tb2.pack(pady=15, fill='both')
         self.tb2.insert(tk.END, 'Hier stehen nach der Auswahl die Dateien (inkl. Pfade) ...')
 
         self.btn_waehlen = ttk.Button(self.tab4, text='Datei wählen',
