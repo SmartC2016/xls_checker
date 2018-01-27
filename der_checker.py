@@ -89,7 +89,8 @@ class Klaus_App(tk.Frame):
 
         self.btn_excel = ttk.Button(self.tab1, text='Excel-Check starten', default='active', command=dummy, width=16)
         self.btn_excel.grid(row=29, column=0, padx=2, pady=2)
-        self.btn_dl_lesen = ttk.Button(self.tab1, text='Dateiliste neu lesen', command=dummy, width=16)
+        self.btn_dl_lesen = ttk.Button(self.tab1, text='Dateiliste neu lesen',
+                                       command=self.existiert_dateiliste, width=16)
         self.btn_dl_lesen.grid(row=29, column=15, padx=2, pady=2)
         self.btn_quit_t1 = ttk.Button(self.tab1, text='Beenden', command=self.click_beenden, width=16)
         self.btn_quit_t1.grid(row=29, column=30, padx=2, pady=2)
@@ -118,7 +119,8 @@ class Klaus_App(tk.Frame):
         self.btn_waehlen = ttk.Button(self.tab4, text='Datei wählen',
                                       default='active', command=self.click_datei_waehlen, width=16)
         self.btn_waehlen.grid(row=29, column=0, padx=2, pady=2)
-        self.btn_speichern = ttk.Button(self.tab4, text='Liste speichern', command=dummy, width=16)
+        self.btn_speichern = ttk.Button(self.tab4, text='Liste speichern',
+                                        command=self.click_speicher_dateinamen, width=16)
         self.btn_speichern.grid(row=29, column=15, padx=2, pady=2)
         self.btn_quit_t4 = ttk.Button(self.tab4, text='Beenden', command=self.click_beenden, width=16)
         self.btn_quit_t4.grid(row=29, column=30, padx=2, pady=2)
@@ -128,6 +130,7 @@ class Klaus_App(tk.Frame):
         return
 
     def existiert_dateiliste(self):
+        self.tb1.delete(1.0, tk.END)
         if os.path.exists('Dateiliste.txt') == True:
             msg = 'Die Datei "Dateiliste.txt" existiert.\n\n'
             print(msg)
@@ -162,9 +165,9 @@ class Klaus_App(tk.Frame):
 
     def click_speicher_dateinamen(self, event=None):
         # Liste bereinigen: Duplikate löschen und leere Zeilen
-        self.liste_bereinigen()
-        self.fuelle_tb2()
         if len(self.dateiliste) > 0:
+            self.liste_bereinigen()
+            self.fuelle_tb2()
             print('Die Liste ist länger als 0 - es wird gespeichert!')
             dateiname = 'Dateiliste.txt'
             #import os.path
@@ -186,6 +189,7 @@ class Klaus_App(tk.Frame):
 
         else:
             messagebox.showinfo("Speichern?", "Gibt nichts zu speichern!")
+            self.tab4.focus()
         return
 
     def liste_bereinigen(self):
@@ -193,6 +197,7 @@ class Klaus_App(tk.Frame):
             # Das ist ein Trick, die Liste in ein Set umzuwandeln, denn Sets haben keine Duplikate und dann
             # wieder zurück in eine Liste
             self.dateiliste = list(set(self.dateiliste))
+            self.dateiliste.sort()
             loesch_index = []
             for ind, line in enumerate(self.dateiliste):
                 if line == '':
@@ -249,6 +254,7 @@ class Klaus_App(tk.Frame):
         Diese Funktion testet ob alle Datein in der Datei-Liste auch tatsächlich existieren
         :return: kein Rückgabewert
         """
+        self.fehler = False
         for ind, datei in enumerate(self.dateiliste):
             if os.path.exists(datei) == True:
                 msg = f'\nDie {ind+1}. Datei "{datei}" existiert.\n'
