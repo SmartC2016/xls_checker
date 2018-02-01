@@ -87,7 +87,8 @@ class Klaus_App(tk.Frame):
         self.tb1 = scrolledtext.ScrolledText(self.tab1, wrap=tk.WORD)
         self.tb1.grid(row=1, column=0, columnspan=39, sticky='NSEW')
 
-        self.btn_excel = ttk.Button(self.tab1, text='Excel-Check starten', default='active', command=dummy, width=16)
+        self.btn_excel = ttk.Button(self.tab1, text='Excel-Check starten',
+                                    default='active', command=self.excel_focus, width=16)
         self.btn_excel.grid(row=29, column=0, padx=2, pady=2)
         self.btn_dl_lesen = ttk.Button(self.tab1, text='Dateiliste neu lesen',
                                        command=self.existiert_dateiliste, width=16)
@@ -97,24 +98,35 @@ class Klaus_App(tk.Frame):
 
         # Tab 2 - Zusammenfassung
         # todo checken ob files xlsb oder xlsx sind
-        self.lbl2 = tk.Label(self.tab2, text='My Label 2')
-        self.lbl2.grid(row=0, column=0)
+        self.label2 = ttk.Label(self.tab2, text='EXCEL-DATEI BEARBEITEN')
+        self.label2.grid(row=0, column=0, sticky='NSEW')
 
-        self.combo = ttk.Combobox(self.tab2)
-        self.combo['values'] = (1, 2, 3, 4, 5, "Text")
-        self.combo.current(1)  # set the pre-selected item
-        self.combo.grid(row=2, column=1)
+        self.tb2 = scrolledtext.ScrolledText(self.tab2, wrap=tk.WORD, height=45)
+        self.tb2.grid(row=1, column=0, columnspan=39, sticky='NSEW')
+
+        self.btn_excel_t2 = ttk.Button(self.tab2, text='Excel-Check starten', command=dummy, width=16)
+        self.btn_excel_t2.grid(row=29, column=0, padx=2, pady=2)
+
+        self.btn_report = ttk.Button(self.tab2, text='Report speichern', command=dummy, width=16)
+        self.btn_report.grid(row=29, column=15, padx=2, pady=2)
+
+        self.btn_quit_t2 = ttk.Button(self.tab2, text='Beenden', command=self.click_beenden, width=16)
+        self.btn_quit_t2.grid(row=29, column=30, padx=2, pady=2)
+
+        # msg = 'Die Datei "Dateiliste.txt" existiert N I C H T !!!.\n' \
+        #       'Du bla bla !\n\n'
+        # self.tb2.insert(tk.END, msg)
 
         # Tab 3 - Details
 
         # Tab 4 - Dateiliste
         # todo Duplikate und leere Zeilen löschen
-        self.label2 = ttk.Label(self.tab4, text='EINGELESENE DATEIEN')
-        self.label2.grid(row=0, column=0)
+        self.label4 = ttk.Label(self.tab4, text='EINGELESENE DATEIEN')
+        self.label4.grid(row=0, column=0)
 
-        self.tb2 = scrolledtext.ScrolledText(self.tab4, relief=tk.SUNKEN, wrap=tk.WORD)
-        self.tb2.grid(row=1, column=0, columnspan=39, sticky='NSEW')
-        self.tb2.insert(tk.END, 'Hier stehen nach der Auswahl die Dateien (inkl. Pfade) ...')
+        self.tb4 = scrolledtext.ScrolledText(self.tab4, relief=tk.SUNKEN, wrap=tk.WORD)
+        self.tb4.grid(row=1, column=0, columnspan=39, sticky='NSEW')
+        self.tb4.insert(tk.END, 'Hier stehen nach der Auswahl die Dateien (inkl. Pfade) ...')
 
         self.btn_waehlen = ttk.Button(self.tab4, text='Datei wählen',
                                       default='active', command=self.click_datei_waehlen, width=16)
@@ -151,7 +163,7 @@ class Klaus_App(tk.Frame):
             self.gespeichert = False
             self.fuelle_tb2()
             return
-        if os.path.exists('Dateiliste.txt') == True:
+        if os.path.exists('Dateiliste.txt'):
             titel = '"Dateiliste.txt" existiert'
             ergebnis = messagebox.askyesno(titel, 'Es existiert bereits eine Dateiliste! Löschen und neue anlegen?')
             if ergebnis:
@@ -160,7 +172,7 @@ class Klaus_App(tk.Frame):
                 lese_datei_ein()
         else:
             lese_datei_ein()
-        self.tb2.focus()
+        self.tb4.focus()
         return
 
     def click_speicher_dateinamen(self, event=None):
@@ -218,11 +230,56 @@ class Klaus_App(tk.Frame):
                 self.tab4.focus()
         return
 
+    def excel_bearbeiten(self):
+        # todo checke welche datei (xlsx od. xlsb)
+        # todo wenn xlsb, konvertiere zu xlsx
+        # todo wenn konvertieren, dann checke ob Excel noch auf ist ?!
+        # todo wenn excel zu und konvertieren, dann konvertieren
+        # todo öffne/lade xlsx (2x, daten, formeln)
+        # todo ermittel die formel spalten
+        # todo checke alle formel-spalten, ob fehler da sind
+        # todo checke alle formel-spalten, ob formeln fehlen
+        # todo schreibe zusammenfassung
+        # todo schreibe detail report (evtl. html?)
+
+        # Solange die Bearbeitung läuft, wird der Button disabled
+        self.btn_excel_t2.configure(state='disabled')
+
+        msg = 'Die Dateiliste enthält folgende Dateien:\n'
+        for line in self.dateiliste:
+            msg = msg + line + '\n'
+        self.tb2.insert(tk.END, msg+'\n')
+
+        # Alle Dateien nach einander abarbeiten
+        for datei in self.dateiliste:
+            self.ist_xlsb_oder_xlsx(datei)
+        return
+
+    def ist_xlsb_oder_xlsx(self, dateiname):
+        """
+        Diese Funktion tested, ob es sich um xlsx oder xlsb handelt
+        :param dateiname: der pfad der datei inklusive dateinamen
+        :return: True, wenn xlsx ist, False wenn es xlsb ist, sonst Datei-Liste neu!
+        """
+        if dateiname[-4:] == 'xlsx':
+            print('xlsx')
+        elif dateiname[-4:] == 'xlsb':
+            print('xlsb')
+        else:
+            print('nix')
+        return
+
+
+    def excel_focus(self):
+        self.tab_control.select(self.tab2)
+        self.excel_bearbeiten()
+        return
+
 
     def fuelle_tb2(self):
-        self.tb2.delete(1.0, tk.END)
+        self.tb4.delete(1.0, tk.END)
         for zeile in self.dateiliste:
-            self.tb2.insert(tk.END, zeile + '\n')
+            self.tb4.insert(tk.END, zeile + '\n')
         return
 
 
@@ -234,7 +291,7 @@ class Klaus_App(tk.Frame):
                     tmp_dateiliste.append(line.strip())
             print(tmp_dateiliste)
             self.dateiliste = tmp_dateiliste
-            msg = f'Datei erfolgreich eingelesen. {len(self.dateiliste)} Dateinamen gefunden:\n'
+            msg = f'Die Dateiliste wurde erfolgreich eingelesen. {len(self.dateiliste)} Dateinamen gefunden:\n'
             self.tb1.insert(tk.END, msg)
             self.aktiviere_deaktiviere_elemente(self.tab2, 'enable')
             self.aktiviere_deaktiviere_elemente(self.tab3, 'enable')
@@ -256,7 +313,7 @@ class Klaus_App(tk.Frame):
         """
         self.fehler = False
         for ind, datei in enumerate(self.dateiliste):
-            if os.path.exists(datei) == True:
+            if os.path.exists(datei):
                 msg = f'\nDie {ind+1}. Datei "{datei}" existiert.\n'
                 print(msg)
                 self.tb1.insert(tk.END, msg)
