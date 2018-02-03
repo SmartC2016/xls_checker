@@ -252,8 +252,78 @@ class Klaus_App(tk.Frame):
 
         # Alle Dateien nach einander abarbeiten
         for datei in self.dateiliste:
-            self.ist_xlsb_oder_xlsx(datei)
+            if datei[-4:] == 'xlsx':
+                # XLSX - Datei kann direkt verarbeitet werden, keine Umwandlung nötig
+                msg = datei + ' -- XLSX-Datei identifiziert!\n'
+                msg += 'Ich verarbeite ... \n'
+                self.tb2.insert(tk.END, msg + '\n')
+                # todo lade xlsx - datei (2x)
+                # todo checke Formelspalten
+                # todo checke Fehler in Formelspalten
+                # todo checke fehlende Formeln
+            elif datei[-4:] == 'xlsb':
+                # XLSB - Datei! Erst in XLSX umwandeln und dann wie XLSX
+                msg = datei + ' -- XLSB-Datei identifiziert!\n'
+                msg += 'Diese Datei muss umgewandelt werden ... \n'
+                self.tb2.insert(tk.END, msg + '\n')
+                if not self.check_ob_excel_laeuft():
+                    print('Excel läuft nicht!')
+                else:
+                    print('XLSB kann auf diesem System nicht umgewandelt werden ...')
+                # todo wandel in XLSX um!
+                # todo lade xlsx - datei (2x)
+                # todo checke Formelspalten
+                # todo checke Fehler in Formelspalten
+                # todo checke fehlende Formeln
+            else:
+                # Keine weitere Verabreitung !
+                msg = datei + ' -- Keine XLSX oder XLSB-Datei identifiziert! Diese Datei wird übersprungen!\n'
+                self.tb2.insert(tk.END, msg + '\n')
+        self.btn_excel_t2.configure(state='enable')
         return
+
+    def check_ob_excel_laeuft(self):
+        """
+        Diese Funktion testet, ob Excel läuft oder nicht.
+        Wenn Excel bereits geöffnet ist, dann stoppt dieses Program.
+        Wenn Excel geschlossen ist, dann geht's weiter!
+        Dies wird gemacht, um einem eventuellem Datenverlust in einem bestehenden Datenverlust vorzubeugen!
+        :return: True, wenn Excel läuft, False, wenn Excel nicht läuft (so ist es gewollt!)
+        """
+        # Erst prüfen, ob dieses Skript auf Windows läuft oder auf Mac/Linux
+        # Wenn Windows, dann wird auf Excel gecheckt
+        import platform
+        my_sys = platform.system()
+        if ('Darwin' in my_sys) or ('Linux' in my_sys):
+            # Das Skript läuft unter Mac oder Linux
+            msg = 'Das Programm läuft unter Mac/Linux, es wird kein Check gemacht, ob Excel läuft.\n'
+            print(msg)
+            self.tb2.insert(tk.END, msg + '\n')
+            return False
+        elif 'Windows' in my_sys:
+            import win32com.client
+            import pythoncom
+            try:
+                win32com.client.GetActiveObject("Excel.Application")
+                # If there is NO error at this stage, Excel is already running
+                msg = 'MS EXCEL läuft! Beenden Sie Excel und starten Sie dann dieses Programm neu!\n'
+                print(msg)
+                self.tb2.insert(tk.END, msg + '\n')
+                messagebox.showerror('Fehler', msg)
+                self.click_beenden()
+            except pythoncom.com_error as error:
+                print(error)
+                print('Excel is NOT running, this is good!')
+                return True
+        else:
+            msg = 'PROBLEM: Ich habe dieses System nicht erkannt!\n'
+            msg += f'Erkannt wurde: {my_sys}! Das PRogramm wird beendet. Wenden Sie sich an den Admin!'
+            print(msg)
+            self.tb2.insert(tk.END, msg + '\n')
+            messagebox.showerror('Fehler', msg)
+            self.click_beenden()
+        return True
+
 
     def ist_xlsb_oder_xlsx(self, dateiname):
         """
