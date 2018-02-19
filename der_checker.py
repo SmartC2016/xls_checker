@@ -64,6 +64,13 @@ class Klaus_App(tk.Frame):
         # Beim "Grid" Window Manager sollte man einstellen, wieviel Spalten und Zeilen das Fenster hat
         tabs = [self.tab1, self.tab2, self.tab3, self.tab4]
         zeile = 0
+
+        while zeile < 30:
+            self.fenster.rowconfigure(zeile, weight=1)
+            self.fenster.columnconfigure(zeile, weight=1)
+            zeile += 1
+
+        zeile = 0
         while zeile < 30:
             for t in tabs:
                 t.rowconfigure(zeile, weight=1)
@@ -759,9 +766,9 @@ def dummy():
 if __name__ == "__main__":
     root = tk.Tk()
     rows = 0
-    while rows < 30:
-        root.rowconfigure(rows, weight=1)
-        root.columnconfigure(rows, weight=1)
-        rows += 1
+    # while rows < 30:
+    #     root.rowconfigure(rows, weight=1)
+    #     root.columnconfigure(rows, weight=1)
+    #     rows += 1
     Klaus_App(root).grid(sticky='NSEW')
     root.mainloop()
