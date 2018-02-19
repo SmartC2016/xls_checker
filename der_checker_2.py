@@ -8,7 +8,7 @@ xlsb - Dateien. Die xlsb - Dateien werden - nur unter Windows mit installiertem 
 umgewandelt und dann verarbeitet.
 
 Dieses Programm durchsucht die jeweilige Datei nach 'definierten' Fehlern.
-Fehler können zum Beispiel sein:
+Fehler sind:
 * In einer Zelle, in der sich eine Formel befinden sollte, befindet sich keine Formel.
 * In einer Formelzelle steht ein Fehlerwert.
 
@@ -17,7 +17,6 @@ Datei sowohl eine Zusammenfassung als auch im Detail, in welcher Zelle sich ein 
 Man kann von den spezifischen / angegebenen Fehlern DIREKT zu der betroffenen Zelle in der Original-Datei springen.
 
 Das Programm wurde nochmal komplett neu geschrieben, um dem Design Ansatz von 'Model-View-Controler' zu entsprechen.
-Am 27.01.18 als GUI neu aufgesetzt.
 """
 
 __version__ = "0.01b - 19.02.2018"
@@ -171,7 +170,6 @@ class View(tk.Frame):
         #self.existiert_dateiliste()
         return
 
-
     def definiere_zeilen(self, element):
         zeile = 0
         while zeile < 30:
@@ -183,23 +181,18 @@ class View(tk.Frame):
     def dummy(self):
         pass
 
+
 class Controller(object):
 
-    def __init__(self, model, view):
-        self.model = model
-        self.view = view
+    def __init__(self, root):
+        self.model = Model()
+        self.view = View(root)
         self.view.mainloop()
         return
 
 
 if __name__ == '__main__':
     root = tk.Tk()
-    #view = View(root).grid(sticky='NSEW')
-    view = View(root)
-    model = Model()
-    controller = Controller(model, view)
+    app = Controller(root)
     # controller.show_items()
     # controller.show_item_information('cheese')
-
-
-
