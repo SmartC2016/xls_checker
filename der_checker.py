@@ -105,11 +105,6 @@ class Klaus_App(tk.Frame):
 
         self.btn_excel_t2 = ttk.Button(self.tab2, text='Excel-Check starten', command=dummy, width=BWIDTH)
         self.btn_excel_t2.grid(row=29, column=0, padx=2, pady=2)
-
-        # self.btn_report = ttk.Button(self.tab2, text='Report speichern', state=tk.DISABLED, command=dummy,
-        #                              width=BWIDTH)
-        # self.btn_report.grid(row=29, column=15, padx=2, pady=2)
-
         self.btn_quit_t2 = ttk.Button(self.tab2, text='Beenden', command=self.click_beenden, width=BWIDTH)
         self.btn_quit_t2.grid(row=29, column=30, padx=2, pady=2)
 
