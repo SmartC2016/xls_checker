@@ -55,7 +55,7 @@ class View(tk.Frame):
         # Überschreibt die Betriebssystem Funktion, wenn auf das 'x' zum schliessen gedrückt wird.
         # So kann noch was anderes vorher geprüft / gemacht werden, bevor das Programm endet.
         #self.fenster.protocol('WM_DELETE_WINDOW', self.click_beenden)
-        self.fenster.protocol('WM_DELETE_WINDOW', self.dummy)
+        #self.fenster.protocol('WM_DELETE_WINDOW', self.dummy)
 
         # Allgemeine Variablen definieren
         self.dateiliste = []  # Hier werden später alle Datei-Namen gespeichert
@@ -75,12 +75,9 @@ class View(tk.Frame):
 
         # Beim "Grid" Window Manager sollte man einstellen, wieviel Spalten und Zeilen das Fenster hat
         tabs = [self.tab1, self.tab2, self.tab3, self.tab4]
-        zeile = 0
-        while zeile < 30:
-            for t in tabs:
-                t.rowconfigure(zeile, weight=1)
-                t.columnconfigure(zeile, weight=1)
-            zeile += 1
+        self.definiere_zeilen(self.fenster)  # Erst für das Fenster im allgemeinen
+        for tab in tabs:  # dann für alle einzelnen Tabs
+            self.definiere_zeilen(tab)
 
         # Tabs benennen
         self.tab_control.add(self.tab1, text='Status')
@@ -147,7 +144,7 @@ class View(tk.Frame):
         # Tab 4 - Dateiliste
         # todo Duplikate und leere Zeilen löschen
         self.label4 = ttk.Label(self.tab4, text='EINGELESENE DATEIEN')
-        self.label4.grid(row=0, column=0)
+        self.label4.grid(row=0, column=0, sticky='NSEW')
 
         self.tb4 = scrolledtext.ScrolledText(self.tab4, relief=tk.SUNKEN, wrap=tk.WORD, height=25)
         self.tb4.grid(row=1, column=0, columnspan=39, sticky='NSEW')
@@ -174,6 +171,15 @@ class View(tk.Frame):
         #self.existiert_dateiliste()
         return
 
+
+    def definiere_zeilen(self, element):
+        zeile = 0
+        while zeile < 30:
+            element.rowconfigure(zeile, weight=1)
+            element.columnconfigure(zeile, weight=1)
+            zeile += 1
+        return
+
     def dummy(self):
         pass
 
@@ -182,12 +188,14 @@ class Controller(object):
     def __init__(self, model, view):
         self.model = model
         self.view = view
+        self.view.mainloop()
         return
 
 
 if __name__ == '__main__':
     root = tk.Tk()
-    view = View(root).grid(sticky='NSEW')
+    #view = View(root).grid(sticky='NSEW')
+    view = View(root)
     model = Model()
     controller = Controller(model, view)
     # controller.show_items()
