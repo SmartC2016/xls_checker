@@ -11,7 +11,7 @@ einer Excel-Datei gespeichert.
 Am 27.01.18 als GUI neu aufgesetzt.
 """
 
-__version__ = "0.99b - 04.02.2018"
+__version__ = "0.999b - 24.03.2018"
 __author__ = "Christian Hetmann"
 
 # todo xlsb-Datei mit Excel einlesen, in xlsx konvertieren und dann speichern
@@ -330,7 +330,6 @@ class Klaus_App(tk.Frame):
                 ele.configure(state=state)
             except:
                 pass
-        #self.btn_report.configure(state=tk.DISABLED)
         return
 
     def konvertiere_xlsb_datei(self, inp_pfad, out_pfad):
@@ -583,7 +582,6 @@ class Excel_Datei(object):
         for row in range(5, arbeitsblatt.max_row+2):
             if arbeitsblatt.cell(row=row, column=1).value is None:
                 print(f'Problem mit Zeile: {row} -- {arbeitsblatt.cell(row=row, column=1).value}')
-                pass
             else:
                 if "Musterzeile" in arbeitsblatt.cell(row=row, column=1).value:
                     musterzeile_gefunden_in_zeile = row
